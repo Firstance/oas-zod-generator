@@ -1,0 +1,7 @@
+dist/
+.out/
+node_modules/
+!.gitignore
+!.tool-versions
+!.prettierrc.json
+!.eslintrc.json

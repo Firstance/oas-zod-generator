@@ -1,0 +1,322 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Skeleton API Example",
+    "description": "Skeleton API Example",
+    "version": "dev"
+  },
+  "components": {
+    "schemas": {
+      "nameContains": {
+        "type": "string"
+      },
+      "AllUsers": {
+        "type": "object",
+        "properties": {
+          "users": {
+            "description": "All the users",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "description": "The user unique identifier",
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "name": {
+                  "description": "The user name",
+                  "type": "string"
+                },
+                "email": {
+                  "description": "The user email",
+                  "type": "string",
+                  "format": "email"
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "email"
+              ]
+            }
+          }
+        },
+        "required": [
+          "users"
+        ]
+      },
+      "BadRequest": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "General error description."
+          },
+          "details": {
+            "type": "array",
+            "description": "Single known details about the error.",
+            "items": {
+              "type": "string",
+              "description": "Single known detail about the error."
+            }
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "A message describing the error."
+          }
+        }
+      },
+      "id": {
+        "type": "string",
+        "pattern": "FA[0-9]{8}"
+      },
+      "OneUser": {
+        "description": "The user",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "The user unique identifier",
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "description": "The user name",
+            "type": "string"
+          },
+          "email": {
+            "description": "The user email",
+            "type": "string",
+            "format": "email"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email"
+        ]
+      },
+      "CreateUser": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "description": "The user name",
+            "type": "string"
+          },
+          "email": {
+            "description": "The user email",
+            "type": "string",
+            "format": "email"
+          }
+        },
+        "required": [
+          "name",
+          "email"
+        ]
+      },
+      "UserCreated": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "description": "The user unique identifier",
+                "type": "string",
+                "format": "uuid"
+              },
+              "name": {
+                "description": "The user name",
+                "type": "string"
+              },
+              "email": {
+                "description": "The user email",
+                "type": "string",
+                "format": "email"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "email"
+            ]
+          }
+        },
+        "required": [
+          "user"
+        ]
+      }
+    }
+  },
+  "paths": {
+    "/user/getAll": {
+      "get": {
+        "summary": "Retrieves all users",
+        "description": "",
+        "operationId": "fa-api-user-dev-getAll",
+        "parameters": [
+          {
+            "name": "nameContains",
+            "in": "query",
+            "description": "Keep all the users with a name which contains this string (case insensitive)",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/nameContains"
+            }
+          }
+        ],
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "All the users matching the query parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AllUsers"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequest"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/getOne/{id}": {
+      "get": {
+        "summary": "Retrieves one user by its unique identifier",
+        "description": "",
+        "operationId": "fa-api-user-dev-getOne",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The user id",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/id"
+            }
+          }
+        ],
+        "tags": [],
+        "responses": {
+          "200": {
+            "description": "The user with that identifier",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OneUser"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequest"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/createOne": {
+      "post": {
+        "summary": "Creates one user",
+        "description": "",
+        "operationId": "fa-api-user-dev-createOne",
+        "parameters": [],
+        "tags": [],
+        "requestBody": {
+          "description": "The user to create",
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUser"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The user created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserCreated"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BadRequest"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
