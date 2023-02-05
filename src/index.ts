@@ -120,29 +120,22 @@ type RequestSelector = {
 const requestValidator = (
   oas: Record<string, unknown>,
   selector: RequestSelector,
-): string | null => {
+): string => {
+  const pathJ = `paths[${selector.path}].${selector.method.toLowerCase()}`;
   const requestJ = JSONPath({
-    path: `paths[${selector.path}].${selector.method.toLowerCase()}`,
+    path: pathJ,
     json: oas,
     flatten: true,
   });
   if (requestJ.length !== 1) {
-    // TODO: error reporting
-    return null;
+    throw new Error(
+      `found ${requestJ.length} element at ${pathJ} in OAS file, expected 1`,
+    );
   }
 
   const pathValidator = parametersValidatorIn(requestJ[0], 'path');
   const queryValidator = parametersValidatorIn(requestJ[0], 'query');
   const bodyValidator = requestBodyValidatorIn(requestJ[0]);
-
-  if (
-    pathValidator === null ||
-    queryValidator === null ||
-    bodyValidator === null
-  ) {
-    // TODO: error reporting
-    return null;
-  }
 
   let moduleS = `// ${DISCLAIMER}\n\n`;
   moduleS += `import { z } from "zod"\n\n`;
@@ -158,15 +151,17 @@ const requestValidator = (
 const parametersValidatorIn = (
   oas: Record<string, unknown>,
   where: ParametersIn,
-): string | null => {
+): string => {
   if (!('parameters' in oas)) {
     return 'z.object({})';
   }
 
   const parametersP = parametersSchemaOAS.safeParse(oas['parameters']);
   if (!parametersP.success) {
-    // TODO: error reporting
-    return null;
+    throw new Error(
+      'unexpected values in request parameters specification.\n' +
+        JSON.stringify(parametersP.error.issues),
+    );
   }
   const parametersR = parametersP.data;
 
@@ -184,17 +179,17 @@ const parametersValidatorIn = (
   return validator;
 };
 
-const requestBodyValidatorIn = (
-  oas: Record<string, unknown>,
-): string | null => {
+const requestBodyValidatorIn = (oas: Record<string, unknown>): string => {
   if (!('requestBody' in oas)) {
     return 'z.any()';
   }
 
   const requestBodyP = requestBodySchemaOAS.safeParse(oas['requestBody']);
   if (!requestBodyP.success) {
-    // TODO: error reporting
-    return null;
+    throw new Error(
+      'unexpected values in request body specification.\n' +
+        JSON.stringify(requestBodyP.error.issues),
+    );
   }
   const requestBodyR = requestBodyP.data;
 
@@ -214,23 +209,28 @@ const requestBodyValidatorIn = (
 const responsesValidator = (
   oas: Record<string, unknown>,
   selector: RequestSelector,
-): string | null => {
+): string => {
+  const pathJ = `paths[${
+    selector.path
+  }].${selector.method.toLowerCase()}.responses`;
   const responsesJ = JSONPath({
-    path: `paths[${selector.path}].${selector.method.toLowerCase()}.responses`,
+    path: pathJ,
     json: oas,
     flatten: true,
   });
 
-  if (!Array.isArray(responsesJ) || responsesJ.length !== 1) {
-    // TODO: error reporting
-    console.error('Expected an array');
-    return null;
+  if (responsesJ.length !== 1) {
+    throw new Error(
+      `found ${responsesJ.length} element at ${pathJ} in OAS file, expected 1`,
+    );
   }
 
   const responsesP = responsesSchemaOAS.safeParse(responsesJ[0]);
   if (!responsesP.success) {
-    // TODO: error reporting
-    return null;
+    throw new Error(
+      'unexpected values in responses specification.\n' +
+        JSON.stringify(responsesP.error.issues),
+    );
   }
   const responsesR = responsesP.data;
 
@@ -270,14 +270,15 @@ const responsesValidator = (
 
 const allRequestSelectors = (oas: any): RequestSelector[] => {
   if (!('paths' in oas)) {
-    // TODO: report errors
-    return [];
+    throw new Error('no requests found in OAS file');
   }
 
   const requestsP = requestsSelectorSchemaOAS.safeParse(oas.paths);
   if (!requestsP.success) {
-    // TODO: error reporting
-    return [];
+    throw new Error(
+      'unexpected values in request specification.\n' +
+        JSON.stringify(requestsP.error.issues),
+    );
   }
   const requestsR = requestsP.data;
 
@@ -414,9 +415,10 @@ const generate = async (
   const oasR = await new Resolver().resolve(oasF);
 
   if (oasR.errors.length > 0) {
-    // TODO: better errors
-    console.error(oasR.errors);
-    process.exit(1);
+    throw new Error(
+      'unable to resolve references in OAS json.\n' +
+        JSON.stringify(oasR.errors),
+    );
   }
 
   allRequestSelectors(oasR.result).forEach(async requestSelector => {
@@ -427,11 +429,9 @@ const generate = async (
       requestSelector,
     );
     if (requestValidatorModule === null) {
-      // TODO: better errors
-      console.error(
-        `Failed to generate validators for request of ${requestName}`,
+      throw new Error(
+        `failed to generate validators for request of ${requestName}`,
       );
-      process.exit(1);
     }
 
     const responsesValidatorModule = responsesValidator(
@@ -439,11 +439,9 @@ const generate = async (
       requestSelector,
     );
     if (responsesValidatorModule === null) {
-      // TODO: better errors
-      console.error(
-        `Failed to generate validators for responses of ${requestName}`,
+      throw new Error(
+        `failed to generate validators for responses of ${requestName}`,
       );
-      process.exit(1);
     }
 
     await writeFile(
