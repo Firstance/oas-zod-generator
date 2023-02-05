@@ -1,13 +1,17 @@
 {
-  "main": "./dist/index.js",
+  "name": "oas-zod-generator",
+  "description": "Generate Zod validators from Open API Specifications",
+  "version": "0.0.1",
+  "main": "./dist/src/index.js",
   "bin": {
-    "oas-zod-generator": "./dist/index.js"
+    "oas-zod-generator": "./dist/src/index.js"
   },
   "scripts": {
     "lint": "eslint src/",
     "build": "tsc -p .",
-    "clean": "rm -rf ./dist",
-    "local": "sudo npm i -g && oas-zod-generator"
+    "clean": "rm -rf ./dist ./.out",
+    "local": "sudo npm i -g && oas-zod-generator",
+    "check": "npm run clean && npm run build && node dist/src/index.js --input ./test/cases/001/openapi.json --output .out --overwrite"
   },
   "devDependencies": {
     "@stoplight/json-ref-resolver": "^3.1.5",
