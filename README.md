@@ -22,7 +22,7 @@ File names are generated uniquely given the characteristics of the request.
 ## How
 
 ```shell
-$ oas-zod-generator --input oasfile.json --output src/.validators --overwrite
+$ npx oas-zod-generator --input oasfile.json --output src/.validators --overwrite
 ```
 
 This will generate a bunch of files in `src/.validators`.
@@ -62,7 +62,7 @@ const r = rv.data;
 ## Install
 
 ```shell
-npm install -g oas-zod-generator
+npm install --save-dev https://github.com/firstance/oas-zod-generator
 ```
 
 ## Limitations
@@ -81,3 +81,4 @@ Known limitations:
 - [ ] More tests
 - [ ] Headers validation for requests (not sure if wanted or worth it)
 - [ ] Headers validation for responses (not sure if wanted or worth it)
+- [ ] Support Zod transformers for query/path parameters
